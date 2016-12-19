@@ -1,4 +1,4 @@
-FROM swiftdocker/swift:3.0.1
+FROM swiftdocker/swift:3.0.2
 MAINTAINER Taewan Kim <taewanme@gmail.com>
 
 # installation of jdk
@@ -41,12 +41,16 @@ RUN update-alternatives --install "/usr/bin/java" "java" "${JAVA_HOME_DIR}/bin/j
 RUN apt-get update \
   &&  apt-get install -y curl apt-utils git make build-essential            \
               libssl-dev libffi-dev zlib1g-dev libbz2-dev libreadline-dev   \
-              libsqlite3-dev python-pip python3-pip libjpeg8-dev python-dev \
-              language-pack-ko python3-dev libxml2 libxml2-dev libxslt1-dev \
+              libsqlite3-dev python-pip libjpeg8-dev python-dev \
+              language-pack-ko libxml2 libxml2-dev libxslt1-dev \
               sudo \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
+RUN mkdir -p /usr/local/libs
+WORKDIR /usr/local/libs
+RUN curl -L -O  https://s3.amazonaws.com/athena-downloads/drivers/AthenaJDBC41-1.0.0.jar  \
+  && curl -L -O  http://central.maven.org/maven2/org/hsqldb/hsqldb/2.3.4/hsqldb-2.3.4.jar
 
 # set locale ko_KR
 RUN locale-gen ko_KR.UTF-8
@@ -54,12 +58,9 @@ ENV LANG ko_KR.UTF-8
 ENV LANGUAGE ko_KR.UTF-8
 ENV LC_ALL ko_KR.UTF-8
 
-RUN pip install --upgrade pip \
- && python3 -m pip install --upgrade pip
+RUN pip install --upgrade pip
 
 # Installation of Tensorflow
-ENV TFPY3 https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.12.0rc0-cp35-cp35m-linux_x86_64.whl
-RUN  pip3 install --upgrade ${TFPY3}
 ENV TFPY https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.12.0rc0-cp27-none-linux_x86_64.whl
 RUN  pip install --upgrade ${TFPY}
 
@@ -74,23 +75,12 @@ RUN pip install numpy               \
  && pip install NetworkX             \
  && pip install --no-cache-dir scipy \
  && pip install Seaborn           \
- && pip install xlrd
+ && pip install xlrd            \
+ && pip install jupyter
 
-RUN pip3 install xlrd            \
- && pip3 install numpy          \
- && pip3 install pillow         \
- && pip3 install matplotlib     \
- && pip3 install scikit-learn   \
- && pip3 install Pandas         \
- && pip3 install scrapy         \
- && pip3 install NLTK           \
- && pip3 install bokeh          \
- && pip3 install NetworkX       \
- && pip3 install scipy          \
- && pip3 install Seaborn        \
- && pip install jupyter         \
- && pip3 install ipykernel      \
- && pip3 install beautifulsoup4
+RUN pip install py4j        
+RUN pip install JayDeBeApi
+
 
 RUN useradd -m qrytica  && echo "qrytica:qrytica" | chpasswd
 RUN chmod 640 /etc/sudoers
@@ -101,12 +91,6 @@ RUN chmod 755 /usr/local/bin/start-notebook.sh \
     && chown -R qrytica  /usr/local/bin/start-notebook.sh
 
 USER qrytica
-
-RUN python3 -m ipykernel install --user
-
-RUN cp -rf /home/qrytica/.local/share/jupyter/kernels/python3 /home/qrytica/.local/share/jupyter/kernels/python2 \
-  &&  sed -i 's/python3/python/g' /home/qrytica/.local/share/jupyter/kernels/python2/kernel.json \
-  &&  sed -i 's/Python 3/Python 2/g' /home/qrytica/.local/share/jupyter/kernels/python2/kernel.json
 
 RUN mkdir -p /home/qrytica/.jupyter/
 COPY jupyter_notebook_config.py /home/qrytica/.jupyter/
