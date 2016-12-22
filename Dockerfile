@@ -58,11 +58,16 @@ ENV LANG ko_KR.UTF-8
 ENV LANGUAGE ko_KR.UTF-8
 ENV LC_ALL ko_KR.UTF-8
 
-RUN pip install --upgrade pip
+RUN pip install --upgrade pip \
+ && python3 -m pip install --upgrade pip
+
+
 
 # Installation of Tensorflow
 ENV TFPY https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.12.0rc0-cp27-none-linux_x86_64.whl
 RUN  pip install --upgrade ${TFPY}
+ENV TFPY3 https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.12.0rc0-cp35-cp35m-linux_x86_64.whl
+RUN  pip3 install --upgrade ${TFPY3}
 
 RUN pip install numpy               \
  && pip install pillow              \
@@ -78,8 +83,23 @@ RUN pip install numpy               \
  && pip install xlrd            \
  && pip install jupyter
 
-RUN pip install py4j        
+RUN pip install py4j
 RUN pip install JayDeBeApi
+
+RUN pip3 install xlrd            \
+ && pip3 install numpy          \
+ && pip3 install pillow         \
+ && pip3 install matplotlib     \
+ && pip3 install scikit-learn   \
+ && pip3 install Pandas         \
+ && pip3 install scrapy         \
+ && pip3 install NLTK           \
+ && pip3 install bokeh          \
+ && pip3 install NetworkX       \
+ && pip3 install scipy          \
+ && pip3 install Seaborn        \
+ && pip3 install ipykernel      \
+ && pip3 install beautifulsoup4
 
 
 RUN useradd -m qrytica  && echo "qrytica:qrytica" | chpasswd
@@ -91,6 +111,14 @@ RUN chmod 755 /usr/local/bin/start-notebook.sh \
     && chown -R qrytica  /usr/local/bin/start-notebook.sh
 
 USER qrytica
+
+RUN python3 -m ipykernel install --user
+
+RUN cp -rf /home/qrytica/.local/share/jupyter/kernels/python3 /home/qrytica/.local/share/jupyter/kernels/python2 \
+  &&  sed -i 's/python3/python/g' /home/qrytica/.local/share/jupyter/kernels/python2/kernel.json \
+  &&  sed -i 's/Python 3/Python 2/g' /home/qrytica/.local/share/jupyter/kernels/python2/kernel.json
+
+
 
 RUN mkdir -p /home/qrytica/.jupyter/
 COPY jupyter_notebook_config.py /home/qrytica/.jupyter/
