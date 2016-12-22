@@ -41,8 +41,8 @@ RUN update-alternatives --install "/usr/bin/java" "java" "${JAVA_HOME_DIR}/bin/j
 RUN apt-get update \
   &&  apt-get install -y curl apt-utils git make build-essential            \
               libssl-dev libffi-dev zlib1g-dev libbz2-dev libreadline-dev   \
-              libsqlite3-dev python-pip libjpeg8-dev python-dev \
-              language-pack-ko libxml2 libxml2-dev libxslt1-dev \
+              libsqlite3-dev python-pip python3-pip libjpeg8-dev python-dev \
+              language-pack-ko python3-dev libxml2 libxml2-dev libxslt1-dev \
               sudo \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
